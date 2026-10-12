@@ -6,12 +6,12 @@
 
 ## 🎮 Actividades Incluidas
 
-1. **🔤 Teclado Mágico (Color Keyboard):**
+1. **🔤 Keyboard Play:**
    - Muestra letras gigantes y colores vibrantes en pantalla.
    - Genera notas musicales tipo xilófono con la Web Audio API.
    - Animaciones de confeti y burbujas.
 
-2. **⚡ Pokémon PC Box (GBA 3rd Gen):**
+2. **⚡ Pokémon Box:**
    - Estética retro inspirada en los juegos de Game Boy Advance.
    - Genera un Pokémon aleatorio por cada letra presionada (A-Z).
    - Fondos de caja de PC dinámicos y efectos de sonido estilo chiptune.
