@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teclado Mágico - ToddlerPlayHub</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Fredoka', cursive, sans-serif;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+      transition: background 0.4s ease;
+      position: relative;
+    }
+
+    /* Botón de pantalla completa */
+    .fullscreen-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 3px solid #fff;
+      border-radius: 50px;
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #333;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      z-index: 10;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .fullscreen-btn:hover {
+      transform: scale(1.05);
+      background: rgba(255, 255, 255, 1);
+    }
+
+    /* Mensaje inicial */
+    .instruction {
+      position: absolute;
+      top: 30px;
+      font-size: 1.8rem;
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    /* Pantalla principal de la letra */
+    .display-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    .char-display {
+      font-size: 35vh;
+      font-weight: 700;
+      color: #ffffff; /* Color inicial */
+      text-shadow: 6px 6px 0px rgba(0, 0, 0, 0.2);
+      text-transform: uppercase;
+      transform: scale(1);
+      transition: transform 0.1s ease-out, color 0.3s ease;
+    }
+
+    .char-display.bounce {
+      animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.5); opacity: 0; }
+      70% { transform: scale(1.2); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Partículas de Confeti */
+    .particle {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      pointer-events: none;
+      animation: float-out 0.8s ease-out forwards;
+    }
+
+    @keyframes float-out {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(1) rotate(0deg);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(var(--dx), var(--dy)) scale(0.3) rotate(360deg);
+      }
+    }
+
+    /* Pie de página */
+    footer {
+      position: absolute;
+      bottom: 15px;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .fb-link {
+      color: #ffffff;
+      font-weight: bold;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <button class="fullscreen-btn" onclick="toggleFullScreen()">📺 Pantalla Completa</button>
+  <div class="instruction">¡Presiona cualquier tecla del teclado! ⌨️</div>
+
+  <div class="display-container">
+    <div id="charDisplay" class="char-display">🎹</div>
+  </div>
+
+  <footer>
+    <p>Desarrollado por <a href="https://www.facebook.com/share/192qzMpbjN/" target="_blank" rel="noopener noreferrer" class="fb-link">Ryu Tecnología</a> &copy; 2026</p>
+  </footer>
+
+  <script>
+    const charDisplay = document.getElementById('charDisplay');
+    
+    // Paletas de color de fondo dinámicas[cite: 2]
+    const bgGradients = [
+      'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)'
+    ];
+
+    // Colores preescolares brillantes y llamativos para las letras
+    const preschoolColors = [
+      '#FF3333', // Rojo vivo
+      '#3366FF', // Azul brillante
+      '#FFCC00', // Amarillo fuerte
+      '#33CC33', // Verde vivo
+      '#FF6600', // Naranja
+      '#9933FF', // Morado
+      '#FF3399', // Rosa fuerte
+      '#00CCCC'  // Turquesa
+    ];
+
+    // Notas de escala pentatónica en Hz (siempre armoniosas)[cite: 2]
+    const notes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
+
+    // Contexto de Audio Sintetizado (Web Audio API)[cite: 2]
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playSynthNote() {
+      initAudio();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      // Selecciona nota aleatoria[cite: 2]
+      const freq = notes[Math.floor(Math.random() * notes.length)];
+      osc.type = 'triangle'; // Sonido suave estilo xilófono[cite: 2]
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+      // Envolvente de volumen (ataque y caída)[cite: 2]
+      gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.6);
+    }
+
+    // Evento de teclado[cite: 2]
+    window.addEventListener('keydown', (e) => {
+      // Ignorar teclas del sistema o de pantalla completa[cite: 2]
+      if (e.key === 'F11' || e.key === 'Tab') return;
+
+      let keyStr = e.key;
+
+      // Traducir teclas especiales a íconos divertidos[cite: 2]
+      if (keyStr === ' ') keyStr = '⭐';
+      else if (keyStr === 'Enter') keyStr = '🎉';
+      else if (keyStr === 'Backspace') keyStr = '👈';
+      else if (keyStr.length > 1) return; // Ignorar Shift, Alt, Ctrl, etc.[cite: 2]
+
+      // Mostrar letra en grande[cite: 2]
+      charDisplay.textContent = keyStr;
+
+      // Seleccionar un color preescolar aleatorio para la letra
+      const randomColor = preschoolColors[Math.floor(Math.random() * preschoolColors.length)];
+      charDisplay.style.color = randomColor;
+
+      // Reproducir animación[cite: 2]
+      charDisplay.classList.remove('bounce');
+      void charDisplay.offsetWidth; // Trigger reflow[cite: 2]
+      charDisplay.classList.add('bounce');
+
+      // Cambiar fondo[cite: 2]
+      const randomBg = bgGradients[Math.floor(Math.random() * bgGradients.length)];
+      document.body.style.background = randomBg;
+
+      // Sonido y Confeti[cite: 2]
+      playSynthNote();
+      createConfetti();
+    });
+
+    // Generador de confeti[cite: 2]
+    function createConfetti() {
+      const colors = ['#FFD166', '#06D6A0', '#118AB2', '#EF476F', '#FF9F1C', '#FFFFFF'];
+      const particleCount = 20;
+
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        
+        // Posición central con variación[cite: 2]
+        const x = window.innerWidth / 2;
+        const y = window.innerHeight / 2;
+
+        particle.style.left = `${x}px`;
+        particle.style.top = `${y}px`;
+        particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+        // Dirección aleatoria[cite: 2]
+        const angle = Math.random() * Math.PI * 2;
+        const velocity = 100 + Math.random() * 250;
+        const dx = Math.cos(angle) * velocity;
+        const dy = Math.sin(angle) * velocity;
+
+        particle.style.setProperty('--dx', `${dx}px`);
+        particle.style.setProperty('--dy', `${dy}px`);
+
+        document.body.appendChild(particle);
+
+        setTimeout(() => particle.remove(), 800);
+      }
+    }
+
+    // Función de Pantalla Completa[cite: 2]
+    function toggleFullScreen() {
+      initAudio();
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => console.log(err));
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+  </script>
+</body>
+</html>

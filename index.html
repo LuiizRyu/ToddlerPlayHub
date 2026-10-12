@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Toddler Play Hub 🎈</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Fredoka', sans-serif;
+      background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    h1 {
+      font-size: 3rem;
+      color: #2c3e50;
+      text-shadow: 2px 2px 0px #fff;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      font-size: 1.2rem;
+      color: #4a6572;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      text-decoration: none;
+      color: inherit;
+      border: 4px solid #fff;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 25px rgba(0,0,0,0.15);
+    }
+
+    .card.letras { border-color: #ff7675; }
+    .card.pokemon { border-color: #fdcb6e; }
+    .card.next { border-color: #b2bec3; opacity: 0.7; }
+
+    .card-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-title {
+      font-size: 1.5rem;
+      color: #2d3436;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-desc {
+      font-size: 0.95rem;
+      color: #636e72;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🎮 Toddler Play Hub</h1>
+    <p>Juegos interactivos de teclado para explorar y aprender</p>
+  </header>
+
+  <main class="grid-container">
+    
+    <a href="./keyboard_play.html" class="card letras">
+      <div class="card-icon">🔤</div>
+      <h2 class="card-title">Teclado de Colores</h2>
+      <p class="card-desc">Presiona cualquier tecla para aprender y sorprenderte.</p>
+    </a>
+
+    <a href="./pokemon_box.html" class="card pokemon">
+      <div class="card-icon">⚡</div>
+      <h2 class="card-title">Pokémon PC Box</h2>
+      <p class="card-desc">Descubre Pokémon aleatorios por letra.</p>
+    </a>
+
+    <div class="card next">
+      <div class="card-icon">🚀</div>
+      <h2 class="card-title">Próximamente</h2>
+      <p class="card-desc">Nuevas actividades interactivas de números y formas.</p>
+    </div>
+
+  </main>
+  
+    <footer>
+    <p>Desarrollado por <a href="https://www.facebook.com/share/192qzMpbjN/" target="_blank" rel="noopener noreferrer" class="fb-link">Ryu Tecnología</a> &copy; 2026</p>
+  </footer>
+</body>
+</html>
