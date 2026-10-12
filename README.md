@@ -28,4 +28,4 @@
 
 ## 💡 Cómo Usarlo
 
-Simplemente abre el archivo `index.html` en cualquier navegador moderno o visita la versión desplegada en **GitHub Pages**.
+Simplemente abre el archivo `index.html` en cualquier navegador moderno o visita la versión desplegada en **toddlerplayhub.netlify.app**.
