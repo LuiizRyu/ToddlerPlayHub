@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Computer Engineering for Babies</title>
+  <style>
+    :root {
+      --paper-radius: 16px;
+      --font-book: 'Trebuchet MS', 'Futura', 'Arial Round MT Bold', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px 10px;
+      min-height: 100vh;
+      /* Fondo gris azulado elegante */
+      background: radial-gradient(circle at center, #2c3e50 0%, #0085a6 100%);
+      font-family: var(--font-book);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+    }
+
+    /* Encabezado con el Título del Libro */
+    .app-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .app-title {
+      color: #ecf0f1;
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      margin: 0 0 4px 0;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .app-subtitle {
+      color: #95a5a6;
+      font-size: 0.95rem;
+      margin: 0;
+    }
+
+    .book-container {
+      width: 100%;
+      max-width: 900px;
+      perspective: 1000px;
+    }
+
+    /* Estructura del Libro */
+    .book {
+      display: flex;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      min-height: 420px;
+      background: #111;
+      border-radius: var(--paper-radius);
+      box-shadow: 
+        0 20px 50px rgba(0,0,0,0.5),
+        0 2px 4px rgba(0,0,0,0.3);
+      position: relative;
+      overflow: hidden;
+      border: 4px solid #1a252f;
+    }
+
+    /* Páginas Izquierda y Derecha */
+    .page {
+      flex: 1;
+      height: 100%;
+      position: relative;
+      transition: background-color 0.4s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px;
+    }
+
+    .page-left {
+      border-top-left-radius: calc(var(--paper-radius) - 4px);
+      border-bottom-left-radius: calc(var(--paper-radius) - 4px);
+      box-shadow: inset -15px 0 20px rgba(0,0,0,0.15);
+      border-right: 2px solid rgba(0,0,0,0.1);
+    }
+
+    .page-right {
+      border-top-right-radius: calc(var(--paper-radius) - 4px);
+      border-bottom-right-radius: calc(var(--paper-radius) - 4px);
+      box-shadow: inset 15px 0 20px rgba(0,0,0,0.15);
+    }
+
+    /* Pliegue del Lomo del Libro */
+    .spine {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 12px;
+      transform: translateX(-50%);
+      background: linear-gradient(to right, rgba(0,0,0,0.25), rgba(0,0,0,0.05) 50%, rgba(0,0,0,0.25));
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    /* Fondo de Circuito Estilo Impreso */
+    .circuit-bg {
+      position: absolute;
+      inset: 0;
+      opacity: 0.12;
+      background-image: 
+        radial-gradient(#000 1.5px, transparent 1.5px),
+        linear-gradient(to right, #000 1px, transparent 1px),
+        linear-gradient(to bottom, #000 1px, transparent 1px);
+      background-size: 24px 24px, 12px 12px, 12px 12px;
+      pointer-events: none;
+    }
+
+    /* Troquelados / Agujeros en Página Izquierda */
+    .die-cut {
+      position: absolute;
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background-color: var(--next-page-color, #ff6b81);
+      box-shadow: 
+        inset 3px 3px 6px rgba(0,0,0,0.4),
+        inset -1px -1px 2px rgba(255,255,255,0.3);
+      border: 3px solid rgba(0,0,0,0.15);
+    }
+
+    .die-cut-1 { top: 22%; left: 45%; }
+    .die-cut-2 { top: 58%; left: 45%; }
+
+    /* Estilo del Título del Capítulo */
+    .page-title {
+      font-size: 3rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #1a1a1a;
+      text-transform: uppercase;
+      position: absolute;
+      bottom: 24px;
+      right: 36px;
+      margin: 0;
+      opacity: 0.85;
+    }
+
+    /* Esquema SVG de Cables y Compuertas */
+    .circuit-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .wire-path {
+      stroke: #222;
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      transition: stroke 0.15s ease, filter 0.15s ease;
+    }
+
+    .wire-active {
+      stroke: #3b82f6;
+      filter: drop-shadow(0 0 5px #3b82f6);
+    }
+
+    .gate-symbol {
+      fill: none;
+      stroke: #111;
+      stroke-width: 4;
+      stroke-linejoin: round;
+    }
+
+    /* Capa de Componentes Arcade */
+    .components-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .arcade-btn {
+      position: absolute;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: auto;
+      cursor: pointer;
+      outline: none;
+      border: none;
+      background: none;
+      padding: 0;
+    }
+
+    .btn-bezel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #e6e6e6, #888);
+      box-shadow: 
+        0 6px 12px rgba(0,0,0,0.35),
+        inset 0 2px 3px rgba(255,255,255,0.8),
+        inset 0 -2px 4px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+    }
+
+    .btn-cap {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      transition: transform 0.05s ease, box-shadow 0.05s ease, background 0.15s ease;
+      box-shadow: 
+        inset 0 4px 6px rgba(255,255,255,0.4),
+        inset 0 -4px 6px rgba(0,0,0,0.4),
+        0 4px 4px rgba(0,0,0,0.2);
+    }
+
+    /* Botón Rojo */
+    .btn-red .btn-cap {
+      background: radial-gradient(circle at 35% 35%, #ff5252, #c62828);
+    }
+    .btn-red.pressed .btn-cap {
+      transform: scale(0.91);
+      box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.6),
+        inset 0 -1px 2px rgba(255,255,255,0.2);
+      background: radial-gradient(circle at 35% 35%, #e53935, #b71c1c);
+    }
+
+    /* Botón Amarillo */
+    .btn-yellow .btn-cap {
+      background: radial-gradient(circle at 35% 35%, #ffeb3b, #f57f17);
+    }
+    .btn-yellow.pressed .btn-cap {
+      transform: scale(0.91);
+      box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.6),
+        inset 0 -1px 2px rgba(255,255,255,0.2);
+      background: radial-gradient(circle at 35% 35%, #fdd835, #f57f17);
+    }
+
+    /* Luz LED */
+    .led-container {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .led-body {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #607d8b, #263238);
+      border: 3px solid #1a1a1a;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+
+    .led-container.active .led-body {
+      background: radial-gradient(circle at 35% 35%, #90caf9, #1e88e5);
+      box-shadow: 
+        0 0 12px #2196f3,
+        0 0 24px #2196f3,
+        0 0 36px #1e88e5,
+        inset 0 0 8px #fff;
+    }
+
+    /* Controles de Navegación */
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .nav-btn {
+      background: #f39c12;
+      border: 3px solid #d35400;
+      color: #fff;
+      font-family: var(--font-book);
+      font-weight: bold;
+      font-size: 1.1rem;
+      padding: 10px 22px;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #d35400;
+      transition: all 0.1s ease;
+    }
+
+    .nav-btn:hover {
+      background: #e67e22;
+    }
+
+    .nav-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 0 0 #d35400;
+    }
+
+    .page-indicator {
+      color: #ecf0f1;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .instruction-tip {
+      margin-top: 12px;
+      color: #ecf0f1;
+      font-size: 0.95rem;
+      text-align: center;
+    }
+
+    @media (max-width: 650px) {
+      .book {
+        aspect-ratio: auto;
+        height: 380px;
+      }
+      .page-title {
+        font-size: 2rem;
+        bottom: 12px;
+        right: 18px;
+      }
+      .arcade-btn {
+        width: 58px;
+        height: 58px;
+      }
+      .die-cut {
+        width: 60px;
+        height: 60px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Encabezado con Título -->
+  <header class="app-header">
+    <h1 class="app-title">Computer Engineering for Babies</h1>
+  </header>
+
+  <div class="book-container">
+    <div class="book">
+      <div class="spine"></div>
+
+      <!-- Página Izquierda -->
+      <div class="page page-left" id="pageLeft">
+        <div class="circuit-bg"></div>
+        <div class="die-cut die-cut-1" id="dieCut1"></div>
+        <div class="die-cut die-cut-2" id="dieCut2"></div>
+      </div>
+
+      <!-- Página Derecha -->
+      <div class="page page-right" id="pageRight">
+        <div class="circuit-bg"></div>
+        
+        <!-- Cables y Compuertas SVG -->
+        <svg class="circuit-svg" viewBox="0 0 400 400" preserveAspectRatio="none">
+          <g id="wireGroup"></g>
+          <g id="gateGroup"></g>
+        </svg>
+
+        <!-- Capa de Componentes -->
+        <div class="components-layer">
+          <!-- Botón 1 (Rojo) -->
+          <button class="arcade-btn btn-red" id="btn1" style="top: 28%; left: 32%; display: none;">
+            <div class="btn-bezel"><div class="btn-cap"></div></div>
+          </button>
+
+          <!-- Botón 2 (Amarillo) -->
+          <button class="arcade-btn btn-yellow" id="btn2" style="top: 62%; left: 32%; display: none;">
+            <div class="btn-bezel"><div class="btn-cap"></div></div>
+          </button>
+
+          <!-- Luz LED -->
+          <div class="led-container" id="led" style="top: 45%; left: 82%;">
+            <div class="led-body"></div>
+          </div>
+        </div>
+
+        <h1 class="page-title" id="pageTitle">WIRE</h1>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controles de Navegación -->
+  <div class="nav-controls">
+    <button class="nav-btn" id="prevBtn">◄ Anterior</button>
+    <span class="page-indicator" id="pageNum">Página 1 / 6</span>
+    <button class="nav-btn" id="nextBtn">Siguiente ►</button>
+  </div>
+
+  <div class="instruction-tip" id="hintText">
+    Mantén presionado el botón para encender la luz.
+  </div>
+  
+    <footer>
+    <p>Desarrollado por <a href="https://www.facebook.com/share/192qzMpbjN/" target="_blank" rel="noopener noreferrer" class="fb-link">Ryu Tecnología</a> &copy; 2026</p>
+  </footer>
+
+  <script>
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    // Sonido Mecánico Realista de Tecla / Botón Microswitch
+    function playKeyClickSound(isRelease = false) {
+      initAudio();
+      if (!audioCtx) return;
+
+      const now = audioCtx.currentTime;
+
+      const bufferSize = audioCtx.sampleRate * 0.015;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.value = isRelease ? 1800 : 2800;
+
+      const osc = audioCtx.createOscillator();
+      const oscGain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(isRelease ? 320 : 520, now);
+      osc.frequency.exponentialRampToValueAtTime(120, now + 0.012);
+
+      oscGain.gain.setValueAtTime(0.25, now);
+      oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.012);
+
+      const noiseGain = audioCtx.createGain();
+      noiseGain.gain.setValueAtTime(0.4, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.015);
+
+      noise.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(audioCtx.destination);
+
+      osc.connect(oscGain);
+      oscGain.connect(audioCtx.destination);
+
+      noise.start(now);
+      osc.start(now);
+      osc.stop(now + 0.015);
+    }
+
+    const pages = [
+      {
+        title: "WIRE",
+        bgColor: "#4ba3e3",
+        nextColor: "#f57c00",
+        buttonsCount: 1,
+        mode: "momentary",
+        hint: "WIRE (Cable): Mantén presionado el botón para conectar el circuito y encender la luz.",
+        logic: (b1, b2) => b1
+      },
+      {
+        title: "NOT",
+        bgColor: "#f57c00",
+        nextColor: "#e91e63",
+        buttonsCount: 1,
+        mode: "momentary",
+        hint: "NOT (Inversor): La luz está encendida. Mantén presionado el botón para APAGARLA.",
+        logic: (b1, b2) => !b1
+      },
+      {
+        title: "OR",
+        bgColor: "#e91e63",
+        nextColor: "#fbc02d",
+        buttonsCount: 2,
+        mode: "toggle",
+        hint: "OR (O): Da clic en un botón O el otro (o ambos) para encender la luz.",
+        logic: (b1, b2) => b1 || b2
+      },
+      {
+        title: "AND",
+        bgColor: "#fbc02d",
+        nextColor: "#26a69a",
+        buttonsCount: 2,
+        mode: "toggle",
+        hint: "AND (Y): Activa el primer botón Y el segundo botón para encender la luz.",
+        logic: (b1, b2) => b1 && b2
+      },
+      {
+        title: "XOR",
+        bgColor: "#26a69a",
+        nextColor: "#7e57c2",
+        buttonsCount: 2,
+        mode: "toggle",
+        hint: "XOR (O Exclusivo): La luz se enciende si SOLO UN botón está activado.",
+        logic: (b1, b2) => (b1 && !b2) || (!b1 && b2)
+      },
+      {
+        title: "LATCH",
+        bgColor: "#7e57c2",
+        nextColor: "#4ba3e3",
+        buttonsCount: 2,
+        mode: "toggle",
+        hint: "LATCH (Memoria): El botón Rojo ACTIVA la luz. El botón Amarillo la APAGA.",
+        isLatch: true
+      }
+    ];
+
+    let currentPageIdx = 0;
+    let btn1State = false;
+    let btn2State = false;
+    let latchState = false;
+
+    const pageLeft = document.getElementById('pageLeft');
+    const pageRight = document.getElementById('pageRight');
+    const dieCut1 = document.getElementById('dieCut1');
+    const dieCut2 = document.getElementById('dieCut2');
+    const pageTitle = document.getElementById('pageTitle');
+    const btn1 = document.getElementById('btn1');
+    const btn2 = document.getElementById('btn2');
+    const led = document.getElementById('led');
+    const wireGroup = document.getElementById('wireGroup');
+    const gateGroup = document.getElementById('gateGroup');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const pageNum = document.getElementById('pageNum');
+    const hintText = document.getElementById('hintText');
+
+    function updateBook() {
+      const p = pages[currentPageIdx];
+
+      pageLeft.style.backgroundColor = p.bgColor;
+      pageRight.style.backgroundColor = p.bgColor;
+      pageLeft.style.setProperty('--next-page-color', p.nextColor);
+      pageTitle.innerText = p.title;
+      pageNum.innerText = `Página ${currentPageIdx + 1} / ${pages.length}`;
+      hintText.innerText = p.hint;
+
+      btn1State = false;
+      btn2State = false;
+      btn1.classList.remove('pressed');
+      btn2.classList.remove('pressed');
+
+      if (p.buttonsCount === 1) {
+        btn1.style.display = 'block';
+        btn1.style.top = '45%';
+        btn2.style.display = 'none';
+        dieCut1.style.display = 'block';
+        dieCut1.style.top = '41%';
+        dieCut2.style.display = 'none';
+      } else {
+        btn1.style.display = 'block';
+        btn1.style.top = '28%';
+        btn2.style.display = 'block';
+        btn2.style.top = '62%';
+        dieCut1.style.display = 'block';
+        dieCut1.style.top = '24%';
+        dieCut2.style.display = 'block';
+        dieCut2.style.top = '58%';
+      }
+
+      renderCircuitDiagram();
+      evaluateLogic();
+    }
+
+    function renderCircuitDiagram() {
+      const p = pages[currentPageIdx];
+      wireGroup.innerHTML = '';
+      gateGroup.innerHTML = '';
+
+      if (p.title === "WIRE") {
+        wireGroup.innerHTML = `<path class="wire-path" id="wire1" d="M 128 180 L 328 180" />`;
+      } 
+      else if (p.title === "NOT") {
+        wireGroup.innerHTML = `
+          <path class="wire-path" id="wire1" d="M 128 180 L 210 180" />
+          <path class="wire-path" id="wireOut" d="M 250 180 L 328 180" />
+        `;
+        gateGroup.innerHTML = `
+          <polygon points="210,165 210,195 240,180" class="gate-symbol" />
+          <circle cx="245" cy="180" r="5" class="gate-symbol" />
+        `;
+      } 
+      else if (p.title === "OR") {
+        wireGroup.innerHTML = `
+          <path class="wire-path" id="wire1" d="M 128 112 L 200 112 L 200 165 C 200 165, 210 165, 220 165" />
+          <path class="wire-path" id="wire2" d="M 128 248 L 200 248 L 200 195 C 200 195, 210 195, 220 195" />
+          <path class="wire-path" id="wireOut" d="M 260 180 L 328 180" />
+        `;
+        gateGroup.innerHTML = `
+          <path d="M 205 160 Q 220 180 205 200 Q 235 200 260 180 Q 235 160 205 160 Z" class="gate-symbol" />
+        `;
+      } 
+      else if (p.title === "AND") {
+        wireGroup.innerHTML = `
+          <path class="wire-path" id="wire1" d="M 128 112 L 210 112 L 210 170 L 220 170" />
+          <path class="wire-path" id="wire2" d="M 128 248 L 210 248 L 210 190 L 220 190" />
+          <path class="wire-path" id="wireOut" d="M 260 180 L 328 180" />
+        `;
+        gateGroup.innerHTML = `
+          <path d="M 210 160 L 235 160 A 20 20 0 0 1 235 200 L 210 200 Z" class="gate-symbol" />
+        `;
+      } 
+      else if (p.title === "XOR") {
+        wireGroup.innerHTML = `
+          <path class="wire-path" id="wire1" d="M 128 112 L 195 112 L 195 165 L 215 165" />
+          <path class="wire-path" id="wire2" d="M 128 248 L 195 248 L 195 195 L 215 195" />
+          <path class="wire-path" id="wireOut" d="M 265 180 L 328 180" />
+        `;
+        gateGroup.innerHTML = `
+          <path d="M 200 160 Q 212 180 200 200" class="gate-symbol" />
+          <path d="M 208 160 Q 220 180 208 200 Q 238 200 263 180 Q 238 160 208 160 Z" class="gate-symbol" />
+        `;
+      } 
+      else if (p.title === "LATCH") {
+        wireGroup.innerHTML = `
+          <path class="wire-path" id="wire1" d="M 128 112 L 210 112 L 210 170 L 220 170" />
+          <path class="wire-path" id="wire2" d="M 128 248 L 210 248 L 210 190 L 220 190" />
+          <path class="wire-path" id="wireOut" d="M 260 180 L 328 180" />
+        `;
+        gateGroup.innerHTML = `
+          <rect x="210" y="155" width="50" height="50" rx="6" class="gate-symbol" />
+          <text x="235" y="185" text-anchor="middle" font-size="12" font-weight="bold" fill="#000">SR</text>
+        `;
+      }
+    }
+
+    function evaluateLogic() {
+      const p = pages[currentPageIdx];
+      let isActive = false;
+
+      if (p.isLatch) {
+        if (btn1State) latchState = true;
+        if (btn2State) latchState = false;
+        isActive = latchState;
+      } else {
+        isActive = p.logic(btn1State, btn2State);
+      }
+
+      if (isActive) {
+        led.classList.add('active');
+      } else {
+        led.classList.remove('active');
+      }
+
+      const w1 = document.getElementById('wire1');
+      const w2 = document.getElementById('wire2');
+      const wOut = document.getElementById('wireOut');
+
+      if (w1) w1.classList.toggle('wire-active', btn1State);
+      if (w2) w2.classList.toggle('wire-active', btn2State);
+      if (wOut) wOut.classList.toggle('wire-active', isActive);
+    }
+
+    function pressButton(btnNum) {
+      const p = pages[currentPageIdx];
+
+      if (p.mode === "toggle") {
+        playKeyClickSound(false);
+        if (btnNum === 1) {
+          btn1State = !btn1State;
+          btn1.classList.toggle('pressed', btn1State);
+        } else {
+          btn2State = !btn2State;
+          btn2.classList.toggle('pressed', btn2State);
+        }
+      } else {
+        if (btnNum === 1 && !btn1State) {
+          playKeyClickSound(false);
+          btn1State = true;
+          btn1.classList.add('pressed');
+        } else if (btnNum === 2 && !btn2State) {
+          playKeyClickSound(false);
+          btn2State = true;
+          btn2.classList.add('pressed');
+        }
+      }
+      evaluateLogic();
+    }
+
+    function releaseButton(btnNum) {
+      const p = pages[currentPageIdx];
+      if (p.mode === "momentary") {
+        if (btnNum === 1 && btn1State) {
+          playKeyClickSound(true);
+          btn1State = false;
+          btn1.classList.remove('pressed');
+        } else if (btnNum === 2 && btn2State) {
+          playKeyClickSound(true);
+          btn2State = false;
+          btn2.classList.remove('pressed');
+        }
+        evaluateLogic();
+      }
+    }
+
+    function attachButtonEvents(btnElement, btnNum) {
+      btnElement.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        pressButton(btnNum);
+      });
+
+      btnElement.addEventListener('mouseup', (e) => {
+        e.preventDefault();
+        releaseButton(btnNum);
+      });
+
+      btnElement.addEventListener('mouseleave', (e) => {
+        releaseButton(btnNum);
+      });
+
+      btnElement.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        pressButton(btnNum);
+      });
+
+      btnElement.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        releaseButton(btnNum);
+      });
+    }
+
+    attachButtonEvents(btn1, 1);
+    attachButtonEvents(btn2, 2);
+
+    prevBtn.addEventListener('click', () => {
+      playKeyClickSound(false);
+      currentPageIdx = (currentPageIdx - 1 + pages.length) % pages.length;
+      updateBook();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      playKeyClickSound(false);
+      currentPageIdx = (currentPageIdx + 1) % pages.length;
+      updateBook();
+    });
+
+    updateBook();
+  </script>
+</body>
+</html>
